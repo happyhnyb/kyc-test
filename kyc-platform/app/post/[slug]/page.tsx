@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Article from '@/components/post/Article';
+import { Article } from '@/components/post/Article';
 import { getAllPosts, getPost } from '@/lib/api';
 
 export async function generateStaticParams() {
@@ -7,8 +7,9 @@ export async function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
+export default async function PostPage({ params }: any) {
+  const { slug } = await params;
+  const post = await getPost(slug);
 
   if (!post) notFound();
 
