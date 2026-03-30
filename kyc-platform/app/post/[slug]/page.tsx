@@ -1,15 +1,20 @@
 import { notFound } from 'next/navigation';
-import { Article } from '@/components/post/Article';
-import { getPost } from '@/lib/api';
-import { getServerSessionUser } from '@/lib/session';
+import Article from '@/components/post/Article';
+import { getAllPosts, getPost } from '@/lib/api';
 
-export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const post = await getPost(slug);
+export async function generateStaticParams() {
+  const posts = await getAllPosts();
+  return posts.map((post) => ({ slug: post.slug }));
+}
+
+export default async function PostPage({ params }: { params: { slug: string } }) {
+  const post = await getPost(params.slug);
+
   if (!post) notFound();
 
-  const session = await getServerSessionUser();
-  const canRead = !post.is_premium || !!session && ['admin', 'editor', 'premium'].includes(session.role);
+  // GitHub Pages is static hosting; server-side sessions won't work.
+  // Keep premium content protected by default.
+  const canRead = !post.is_premium;
 
   return <Article post={post} canRead={canRead} />;
 }
